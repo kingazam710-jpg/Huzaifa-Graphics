@@ -1,248 +1,420 @@
 <!DOCTYPE html>
-<html lang="ur">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Huzaifa Graphics Studio</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            background-color: #f0f2f5;
-            margin: 0;
-            padding: 20px;
-            display: flex;
-            flex-col-direction: column;
-            align-items: center;
-            justify-content: center;
-        }
-        .container {
-            background-color: white;
-            padding: 20px;
-            border-radius: 10px;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-            max-width: 600px;
-            width: 100%;
-            text-align: center;
-            box-sizing: border-box;
-        }
-        h1 {
-            color: #333;
-            margin-bottom: 20px;
-        }
-        .control-group {
-            margin-bottom: 15px;
-            text-align: right;
-        }
-        label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #555;
-        }
-        select, input[type="file"], input[type="text"] {
-            width: 100%;
-            padding: 10px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-            box-sizing: border-box;
-            font-size: 16px;
-        }
-        .canvas-wrapper {
-            margin: 20px 0;
-            display: flex;
-            justify-content: center;
-            background-color: #e9ecef;
-            padding: 10px;
-            border-radius: 5px;
-            overflow: auto;
-        }
-        button {
-            background-color: #28a745;
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            font-size: 18px;
-            border-radius: 5px;
-            cursor: pointer;
-            width: 100%;
-            font-weight: bold;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-        .btn-text {
-            background-color: #007bff;
-            margin-top: 5px;
-        }
-        .btn-text:hover {
-            background-color: #0069d9;
-        }
-    </style>
-    <!-- Fabric.js Library -->
+    <title>Huzaifa Graphics Studio Pro</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Poppins:wght@600&display=swap" rel="stylesheet">
+    <link href="https://fonts.cdnfonts.com/css/jameel-noori-nastaleeq" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
+
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { background-color: #0c0a14; color: white; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        header { background: linear-gradient(135deg, #8a2be2, #4a00e0); padding: 12px; text-align: center; font-weight: 700; font-size: 16px; letter-spacing: 1px; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        
+        /* Main Workspace */
+        .main-container { flex: 1; display: flex; flex-direction: column; position: relative; background-color: #120f24; padding: 10px; justify-content: center; align-items: center; }
+        .canvas-holder { box-shadow: 0px 10px 30px rgba(0,0,0,0.7); border-radius: 12px; overflow: hidden; border: 2px solid #3d346d; background-color: #1a1633; display: flex; justify-content: center; align-items: center; }
+
+        /* Modern Dynamic Bottom Panel */
+        .control-panel { background-color: #151226; border-top: 2px solid #2d2654; padding: 10px 0; display: flex; flex-direction: column; gap: 8px; width: 100%; position: relative; }
+        
+        .section-title { font-size: 11px; text-transform: uppercase; letter-spacing: 1px; color: #a29bfe; padding: 0 15px; font-weight: 600; }
+        
+        /* Templates Row */
+        .templates-row { display: flex; gap: 10px; overflow-x: auto; padding: 0 15px; scrollbar-width: none; min-height: 65px; }
+        .templates-row::-webkit-scrollbar { display: none; }
+        .template-card { width: 60px; height: 60px; background-size: cover; background-position: center; border-radius: 8px; flex-shrink: 0; cursor: pointer; border: 2px solid transparent; transition: 0.2s; }
+        .template-card:hover { border-color: #00ffd1; }
+
+        /* Smart Contextual Menu (بدلنے والا مینو) */
+        .context-menu { background: #1c1736; margin: 0 15px; padding: 10px; border-radius: 10px; border: 1px solid #3d346d; display: none; gap: 10px; align-items: center; justify-content: space-around; min-height: 55px; }
+        .context-btn { background: none; border: none; color: white; display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 10px; cursor: pointer; min-width: 50px; }
+        .context-btn i { font-size: 16px; color: #00ffd1; background: #221d45; padding: 8px; border-radius: 50%; width: 34px; height: 34px; display: flex; justify-content: center; align-items: center; }
+        
+        .input-box-active { flex: 1; background: #120f24; border: 1px solid #4a00e0; padding: 8px; border-radius: 6px; color: white; font-size: 12px; outline: none; }
+        .font-style-active { background: #8a2be2; color: white; border: none; padding: 8px; border-radius: 6px; font-size: 12px; }
+
+        /* Size Sub-Menu Panel with Custom Inputs */
+        .size-panel-popup { display: none; background: #1c1736; margin: 0 15px; padding: 10px; border-radius: 10px; border: 1px solid #3d346d; gap: 10px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+        .size-panel-popup::-webkit-scrollbar { display: none; }
+        .size-opts-wrapper { display: flex; gap: 8px; align-items: center; }
+        .size-opt-btn { background: #221d45; border: 1px solid #3d346d; color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; white-space: nowrap; transition: 0.2s; }
+        .size-opt-btn:hover, .size-opt-btn.active { background: #8a2be2; border-color: #00ffd1; }
+        
+        /* Custom Size Inputs Style */
+        .custom-size-container { display: flex; align-items: center; gap: 5px; border-left: 2px solid #3d346d; padding-left: 10px; margin-left: 5px; }
+        .custom-size-input { width: 55px; background: #120f24; border: 1px solid #3d346d; color: white; padding: 5px; border-radius: 4px; font-size: 11px; text-align: center; outline: none; }
+        .custom-size-btn { background: #00ffd1; color: #0c0a14; border: none; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
+
+        /* Layers Panel Slider */
+        .layers-panel { position: absolute; right: -250px; top: 60px; width: 220px; background: #151226; border: 1px solid #3d346d; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; z-index: 98; transition: 0.3s; box-shadow: -5px 5px 15px rgba(0,0,0,0.5); }
+        .layers-panel.active { right: 15px; }
+        .layer-item { display: flex; justify-content: space-between; align-items: center; background: #1c1736; padding: 6px 10px; border-radius: 6px; font-size: 11px; }
+        .layer-controls { display: flex; gap: 10px; }
+        .layer-icon-btn { background: none; border: none; color: #b2bec3; cursor: pointer; font-size: 12px; }
+        .layer-icon-btn.active { color: #ff7675; }
+
+        /* Main Base Dock Buttons */
+        .base-toolbar { display: flex; gap: 12px; overflow-x: auto; padding: 5px 15px; scrollbar-width: none; border-top: 1px solid #1c1736; justify-content: space-around; }
+        .base-toolbar::-webkit-scrollbar { display: none; }
+        .main-dock-btn { display: flex; flex-direction: column; align-items: center; background: none; border: none; color: #b2bec3; font-size: 11px; cursor: pointer; min-width: 60px; gap: 4px; }
+        .main-dock-btn i { font-size: 16px; color: white; background: #1c1736; padding: 10px; border-radius: 12px; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; }
+        .main-dock-btn.active i { background: #8a2be2; color: #00ffd1; }
+        
+        .color-picker-wrapper { position: relative; }
+        .hidden-color { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; }
+        #hidden-photo-loader { display: none; }
+    </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>Huzaifa Graphics Studio</h1>
+    <header><i class="fa-solid fa-wand-magic-sparkles"></i> HG Studio Pro</header>
 
-    <!-- 1. NEW SIZE OPTION -->
-    <div class="control-group">
-        <label>۱. ڈیزائن کا سائز منتخب کریں:</label>
-        <select id="sizeSelect" onchange="changeCanvasSize(this.value)">
-            <option value="1:1">Instagram / Square Post (1:1)</option>
-            <option value="16:9">YouTube Thumbnail (16:9)</option>
-            <option value="9:16">TikTok / WhatsApp Status (9:16)</option>
-            <option value="facebook">Facebook Post</option>
-        </select>
+    <div class="main-container">
+        <div class="layers-panel" id="layersPanel">
+            <h4 style="font-size: 11px; color:#a29bfe; border-bottom:1px solid #3d346d; padding-bottom:4px;">Object Layers</h4>
+            <div id="layers-list-container" style="display:flex; flex-direction:column; gap:5px;"></div>
+        </div>
+
+        <div class="canvas-holder" id="canvasHolder">
+            <canvas id="main-canvas" width="340" height="340"></canvas>
+        </div>
     </div>
 
-    <!-- 2. SELECT FRAME -->
-    <div class="control-group">
-        <label>۲. فریم منتخب کریں:</label>
-        <select id="templateSelect" onchange="loadTemplate(this.value)">
-            <option value="">-- کوئی فریم چنیں --</option>
-        </select>
-    </div>
-
-    <!-- 3. UPLOAD PHOTO -->
-    <div class="control-group">
-        <label>۳. اپنی تصویر اپلوڈ کریں:</label>
-        <input type="file" id="userPhotoInput" accept="image/*">
-    </div>
-
-    <!-- CANVAS AREA -->
-    <div class="canvas-wrapper">
-        <canvas id="mainCanvas"></canvas>
-    </div>
-
-    <!-- 4. ADD TEXT -->
-    <div class="control-group">
-        <label>۴. نام لکھیں:</label>
-        <input type="text" id="textInput" placeholder="یہاں اپنا نام لکھیں...">
-        <button class="btn-text" onclick="addCustomText()">نام شامل کریں</button>
-    </div>
-
-    <!-- DOWNLOAD DESIGN -->
-    <button onclick="downloadDesign()">📥 تیار ڈیزائن ڈاؤن لوڈ کریں</button>
-</div>
-
-<!-- Firebase SDK -->
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-<script>
-    // === FIREBASE CONFIGURATION ===
-    const firebaseConfig = {
-        databaseURL: "https://huzaifa-graphics-default-rtdb.firebaseio.com"
-    };
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-
-    // === CANVAS INITIALIZATION ===
-    const canvas = new fabric.Canvas('mainCanvas', {
-        width: 500,
-        height: 500,
-        preserveObjectStacking: true
-    });
-
-    // Function to Change Canvas Size
-    function changeCanvasSize(value) {
-        let w = 500, h = 500;
+    <div class="control-panel">
         
-        if (value === "16:9") {
-            w = 533; h = 300; // YouTube Thumbnail Size Fit
-        } else if (value === "9:16") {
-            w = 300; h = 533; // Portrait Status Size Fit
-        } else if (value === "facebook") {
-            w = 533; h = 280; // Facebook Post Size Fit
-        } else {
-            w = 500; h = 500; // Default Square 1:1
+        <div class="context-menu" id="smartMenu"></div>
+
+        <div class="size-panel-popup" id="sizeMenuRow">
+            <div class="size-opts-wrapper">
+                <button class="size-opt-btn active" id="btn-square" onclick="changeCanvasAspectRatio('1:1', this)">Square (1:1)</button>
+                <button class="size-opt-btn" onclick="changeCanvasAspectRatio('16:9', this)">YouTube (16:9)</button>
+                <button class="size-opt-btn" onclick="changeCanvasAspectRatio('9:16', this)">TikTok (9:16)</button>
+                <button class="size-opt-btn" onclick="changeCanvasAspectRatio('facebook', this)">Facebook</button>
+            </div>
+            <div class="custom-size-container">
+                <input type="number" class="custom-size-input" id="custom-w" placeholder="W" value="340">
+                <span style="font-size:11px; color:#a29bfe;">×</span>
+                <input type="number" class="custom-size-input" id="custom-h" placeholder="H" value="340">
+                <button class="custom-size-btn" onclick="applyCustomSize()">Apply</button>
+            </div>
+        </div>
+
+        <div id="templates-section-area">
+            <div class="section-title">Select Background Template</div>
+            <div class="templates-row" id="firebase-templates"></div>
+        </div>
+
+        <div class="base-toolbar">
+            <button class="main-dock-btn" id="ratio-dock-btn" onclick="toggleSizeMenu()"><i class="fa-solid fa-expand"></i><span>Ratio</span></button>
+            <button class="main-dock-btn" onclick="addCustomText()"><i class="fa-solid fa-t"></i><span>Add Text</span></button>
+            <label for="hidden-photo-loader" class="main-dock-btn"><i class="fa-solid fa-image"></i><span>Add Photo</span></label>
+            <input type="file" id="hidden-photo-loader" accept="image/*">
+            <button class="main-dock-btn" id="layers-dock-btn" onclick="toggleLayersPanel()"><i class="fa-solid fa-layer-group"></i><span>Layers</span></button>
+            <button class="main-dock-btn" onclick="downloadMasterImage()" style="color: #00ffd1;"><i class="fa-solid fa-circle-down" style="background:#00adb5; color:white;"></i><span>Save HD</span></button>
+        </div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        // فائر بیس فری کنفیگریشن
+        const firebaseConfig = { databaseURL: "https://huzaifa-graphics-default-rtdb.firebaseio.com/" };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
+        const canvas = new fabric.Canvas('main-canvas');
+        const smartMenu = document.getElementById('smartMenu');
+        const sizeMenuRow = document.getElementById('sizeMenuRow');
+        const templatesSection = document.getElementById('templates-section-area');
+
+        // ابتدائی تین ٹیکسٹ لائیو ایڈ کرنا
+        function createSampleText(text, top, size) {
+            return new fabric.Text(text, {
+                left: 40, top: top, fontFamily: "'Jameel Noori Nastaleeq', serif",
+                fill: '#ffffff', fontSize: size, hasControls: true, hasBorders: true,
+                cornerColor: '#00ffd1', cornerSize: 8, transparentCorners: false
+            });
         }
-        
-        canvas.setWidth(w);
-        canvas.setHeight(h);
+        canvas.add(createSampleText('پہلی لائن (نام)', 40, 24));
+        canvas.add(createSampleText('دوسری لائن (کاروبار)', 100, 20));
+        canvas.add(createSampleText('تیسری لائن (رابطہ نمبر)', 160, 16));
         canvas.renderAll();
-    }
 
-    // Load Dynamic Templates from Firebase
-    db.ref('templates').on('value', (snapshot) => {
-        const select = document.getElementById('templateSelect');
-        select.innerHTML = '<option value="">-- کوئی فریم چنیں --</option>';
-        snapshot.forEach((child) => {
-            const data = child.val();
-            const opt = document.createElement('option');
-            opt.value = data.url;
-            opt.innerText = data.name || "خوبصورت فریم";
-            select.appendChild(opt);
-        });
-    });
+        // Size Toggle Function
+        function toggleSizeMenu() {
+            // Close layers if open
+            document.getElementById('layersPanel').classList.remove('active');
+            document.getElementById('layers-dock-btn').classList.remove('active');
 
-    // Load Chosen Template onto Canvas
-    function loadTemplate(url) {
-        if(!url) return;
-        fabric.Image.fromURL(url, function(img) {
-            img.set({
-                scaleX: canvas.width / img.width,
-                scaleY: canvas.height / img.height,
-                selectable: true
-            });
-            canvas.add(img);
-            canvas.sendToBack(img);
+            const btn = document.getElementById('ratio-dock-btn');
+            if(sizeMenuRow.style.display === 'flex') {
+                sizeMenuRow.style.display = 'none';
+                templatesSection.style.display = 'block';
+                btn.classList.remove('active');
+            } else {
+                canvas.discardActiveObject().renderAll();
+                smartMenu.style.display = 'none';
+                sizeMenuRow.style.display = 'flex';
+                templatesSection.style.display = 'none';
+                btn.classList.add('active');
+            }
+        }
+
+        // Change Canvas Size Layout Properly
+        function changeCanvasAspectRatio(ratio, element) {
+            let w = 340, h = 340;
+            if (ratio === '16:9') { w = 340; h = 191; }
+            else if (ratio === '9:16') { w = 210; h = 340; }
+            else if (ratio === 'facebook') { w = 340; h = 180; }
+
+            canvas.setWidth(w);
+            canvas.setHeight(h);
             canvas.renderAll();
-        }, { crossOrigin: 'anonymous' });
-    }
 
-    // Handle User Photo Upload
-    document.getElementById('userPhotoInput').addEventListener('change', function(e) {
-        const file = e.target.files[0];
-        if(!file) return;
-        const reader = new FileReader();
-        reader.onload = function(f) {
-            fabric.Image.fromURL(f.target.result, function(img) {
-                img.scaleToWidth(canvas.width * 0.5);
-                img.set({
-                    left: 50,
-                    top: 50,
-                    selectable: true
-                });
-                canvas.add(img);
-                canvas.setActiveObject(img);
-                canvas.renderAll();
-            });
-        };
-        reader.readAsDataURL(file);
-    });
+            document.querySelectorAll('.size-opt-btn').forEach(btn => btn.classList.remove('active'));
+            if(element) element.classList.add('active');
 
-    // Add Custom Text
-    function addCustomText() {
-        const textVal = document.getElementById('textInput').value || "Huzaifa Studio";
-        const text = new fabric.IText(textVal, {
-            left: 50,
-            top: canvas.height - 80,
-            fontFamily: 'Arial',
-            fill: '#000000',
-            fontSize: 28,
-            selectable: true
+            // Sync custom inputs
+            document.getElementById('custom-w').value = w;
+            document.getElementById('custom-h').value = h;
+        }
+
+        // Apply Custom Width & Height Inputted by Customer
+        function applyCustomSize() {
+            let w = parseInt(document.getElementById('custom-w').value) || 340;
+            let h = parseInt(document.getElementById('custom-h').value) || 340;
+            
+            // Limit sizes to prevent design breakage on mobile screens
+            if (w < 50) w = 50; if (h < 50) h = 50;
+            if (w > 600) w = 600; if (h > 600) h = 600;
+
+            canvas.setWidth(w);
+            canvas.setHeight(h);
+            canvas.renderAll();
+
+            // Remove active class from fixed ratio buttons since it's custom
+            document.querySelectorAll('.size-opt-btn').forEach(btn => btn.classList.remove('active'));
+        }
+
+        // Layers Panel Toggle Mechanism
+        function toggleLayersPanel() {
+            // Close ratio menu if open
+            sizeMenuRow.style.display = 'none';
+            templatesSection.style.display = 'block';
+            document.getElementById('ratio-dock-btn').classList.remove('active');
+
+            const panel = document.getElementById('layersPanel');
+            const btn = document.getElementById('layers-dock-btn');
+            panel.classList.toggle('active');
+            btn.classList.toggle('active');
+            refreshLayers();
+        }
+
+        // 🎯 آبجیکٹ سلیکٹ ہونے پر سمارٹ مینو بدلنے کا سسٹم
+        canvas.on('selection:created', updateContextualMenu);
+        canvas.on('selection:updated', updateContextualMenu);
+        canvas.on('selection:cleared', () => {
+            smartMenu.style.display = 'none';
+            sizeMenuRow.style.display = 'none';
+            templatesSection.style.display = 'block';
+            document.getElementById('ratio-dock-btn').classList.remove('active');
         });
-        canvas.add(text);
-        canvas.setActiveObject(text);
-        canvas.renderAll();
-    }
 
-    // Download Design
-    function downloadDesign() {
-        canvas.discardActiveObject();
-        canvas.requestRenderAll();
-        setTimeout(() => {
-            const dataURL = canvas.toDataURL({ format: 'png', quality: 1.0 });
-            const link = document.createElement('a');
-            link.download = 'Huzaifa-Graphics-Design.png';
-            link.href = dataURL;
-            link.click();
-        }, 100);
-    }
-</script>
+        canvas.on('object:added', refreshLayers);
+        canvas.on('object:removed', refreshLayers);
 
+        function updateContextualMenu() {
+            const activeObj = canvas.getActiveObject();
+            if (!activeObj) return;
+
+            templatesSection.style.display = 'none';
+            sizeMenuRow.style.display = 'none';
+            document.getElementById('ratio-dock-btn').classList.remove('active');
+            smartMenu.style.display = 'flex';
+
+            if (activeObj.type === 'text') {
+                smartMenu.innerHTML = `
+                    <input type="text" class="input-box-active" id="liveTextInp" value="${activeObj.text}">
+                    <select class="font-style-active" id="liveFontSel">
+                        <option value="'Jameel Noori Nastaleeq', serif">Urdu</option>
+                        <option value="Impact">Bold</option>
+                        <option value="Montserrat">Modern</option>
+                    </select>
+                    <div class="color-picker-wrapper context-btn">
+                        <i class="fa-solid fa-palette"></i><span>Color</span>
+                        <input type="color" class="hidden-color" id="liveColorInp" value="${activeObj.fill}">
+                    </div>
+                    <button class="context-btn" onclick="deleteSelectedObj()"><i class="fa-solid fa-trash" style="color:#ff7675;"></i><span>Delete</span></button>
+                `;
+
+                document.getElementById('liveTextInp').addEventListener('input', (e) => {
+                    activeObj.set('text', e.target.value);
+                    canvas.renderAll();
+                });
+                document.getElementById('liveFontSel').addEventListener('change', (e) => {
+                    activeObj.set('fontFamily', e.target.value);
+                    canvas.renderAll();
+                });
+                document.getElementById('liveColorInp').addEventListener('input', (e) => {
+                    activeObj.set('fill', e.target.value);
+                    canvas.renderAll();
+                });
+            } 
+            else if (activeObj.type === 'image') {
+                smartMenu.innerHTML = `
+                    <button class="context-btn" onclick="smartAIBackgroundRemove()"><i class="fa-solid fa-wand-magic-sparkles"></i><span>BG Remove</span></button>
+                    <button class="context-btn" onclick="moveLayerUp()"><i class="fa-solid fa-arrow-up"></i><span>Bring Up</span></button>
+                    <button class="context-btn" onclick="moveLayerDown()"><i class="fa-solid fa-arrow-down"></i><span>Send Back</span></button>
+                    <button class="context-btn" onclick="deleteSelectedObj()"><i class="fa-solid fa-trash" style="color:#ff7675;"></i><span>Delete</span></button>
+                `;
+            }
+        }
+
+        function addCustomText() {
+            canvas.add(createSampleText('نیا ٹیکسٹ لکھیں', 120, 22));
+            canvas.renderAll();
+        }
+
+        function deleteSelectedObj() {
+            const activeObj = canvas.getActiveObject();
+            if (activeObj) {
+                canvas.remove(activeObj);
+                canvas.discardActiveObject();
+                canvas.renderAll();
+            }
+        }
+
+        function moveLayerUp() {
+            const activeObj = canvas.getActiveObject();
+            if (activeObj) { canvas.bringForward(activeObj); canvas.renderAll(); refreshLayers(); }
+        }
+
+        function moveLayerDown() {
+            const activeObj = canvas.getActiveObject();
+            if (activeObj) { canvas.sendBackwards(activeObj); canvas.renderAll(); refreshLayers(); }
+        }
+
+        function smartAIBackgroundRemove() {
+            const activeObj = canvas.getActiveObject();
+            if (!activeObj || activeObj.type !== 'image') return;
+            
+            const filter = new fabric.Image.filters.RemoveColor({
+                threshold: 0.15,
+                color: '#ffffff'
+            });
+            activeObj.filters.push(filter);
+            activeObj.applyFilters();
+            canvas.renderAll();
+            alert("Background Cleared Successfully!");
+        }
+
+        document.getElementById('hidden-photo-loader').addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(f) {
+                    fabric.Image.fromURL(f.target.result, function(img) {
+                        img.scaleToWidth(140);
+                        img.set({ left: 50, top: 50, cornerColor: '#00ffd1', cornerSize: 9, transparentCorners: false });
+                        canvas.add(img);
+                        canvas.setActiveObject(img);
+                        canvas.renderAll();
+                    });
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        function refreshLayers() {
+            const container = document.getElementById('layers-list-container');
+            container.innerHTML = "";
+            const objects = canvas.getObjects();
+
+            if(objects.length === 0) {
+                container.innerHTML = "<p style='font-size:10px; color:#555;'>No layers active</p>";
+                return;
+            }
+
+            objects.forEach((obj, index) => {
+                const name = obj.type === 'text' ? `Text: ${obj.text.substring(0,10)}` : `Photo Layer ${index+1}`;
+                const isLocked = !obj.selectable;
+                const isHidden = !obj.visible;
+
+                const row = document.createElement('div');
+                row.className = 'layer-item';
+                row.innerHTML = `
+                    <span>${name}</span>
+                    <div class="layer-controls">
+                        <button class="layer-icon-btn ${isHidden ? 'active' : ''}" onclick="toggleHideLayer(${index})"><i class="fa-solid ${isHidden ? 'fa-eye-slash' : 'fa-eye'}"></i></button>
+                        <button class="layer-icon-btn ${isLocked ? 'active' : ''}" onclick="toggleLockLayer(${index})"><i class="fa-solid ${isLocked ? 'fa-lock' : 'fa-lock-open'}"></i></button>
+                    </div>
+                `;
+                container.prepend(row);
+            });
+        }
+
+        function toggleLockLayer(index) {
+            const obj = canvas.item(index);
+            if (obj) {
+                obj.selectable = !obj.selectable;
+                obj.hasControls = obj.selectable;
+                canvas.discardActiveObject();
+                canvas.renderAll();
+                refreshLayers();
+            }
+        }
+
+        function toggleHideLayer(index) {
+            const obj = canvas.item(index);
+            if (obj) {
+                obj.visible = !obj.visible;
+                canvas.discardActiveObject();
+                canvas.renderAll();
+                refreshLayers();
+            }
+        }
+
+        const templatesRow = document.getElementById('firebase-templates');
+        database.ref('templates').on('value', (snapshot) => {
+            templatesRow.innerHTML = "";
+            if(snapshot.exists()){
+                snapshot.forEach((childSnapshot) => {
+                    const data = childSnapshot.val();
+                    const card = document.createElement('div');
+                    card.className = 'template-card';
+                    card.style.backgroundImage = `url('${data.imageUrl}')`;
+                    card.onclick = () => {
+                        fabric.Image.fromURL(data.imageUrl, function(img) {
+                            img.set({ scaleX: canvas.width / img.width, scaleY: canvas.height / img.height });
+                            canvas.setBackgroundImage(img, canvas.renderAll.bind(canvas));
+                        }, { crossOrigin: 'anonymous' });
+                    };
+                    templatesRow.appendChild(card);
+                });
+            } else {
+                templatesRow.innerHTML = "<p style='font-size:11px; color:#555; padding-top:20px;'>No online frames.</p>";
+            }
+        });
+
+        function downloadMasterImage() {
+            canvas.discardActiveObject();
+            canvas.renderAll();
+            setTimeout(() => {
+                const dataURL = canvas.toDataURL({ format: 'png', quality: 1.0, multiplier: 3 });
+                const link = document.createElement('a');
+                link.download = 'Huzaifa_Graphics_Design.png';
+                link.href = dataURL;
+                link.click();
+            }, 100);
+        }
+    </script>
 </body>
 </html>
