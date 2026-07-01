@@ -40,19 +40,14 @@
         .input-box-active { flex: 1; background: #120f24; border: 1px solid #4a00e0; padding: 8px; border-radius: 6px; color: white; font-size: 12px; outline: none; }
         .font-style-active { background: #8a2be2; color: white; border: none; padding: 8px; border-radius: 6px; font-size: 12px; }
 
-        /* Size Sub-Menu Panel with Custom Inputs */
-        .size-panel-popup { display: none; background: #1c1736; margin: 0 15px; padding: 10px; border-radius: 10px; border: 1px solid #3d346d; gap: 10px; align-items: center; overflow-x: auto; scrollbar-width: none; }
+        /* Size Sub-Menu Panel */
+        .size-panel-popup { display: none; background: #1c1736; margin: 0 15px; padding: 8px; border-radius: 10px; border: 1px solid #3d346d; gap: 10px; overflow-x: auto; scrollbar-width: none; }
         .size-panel-popup::-webkit-scrollbar { display: none; }
-        .size-opts-wrapper { display: flex; gap: 8px; align-items: center; }
         .size-opt-btn { background: #221d45; border: 1px solid #3d346d; color: white; padding: 6px 12px; border-radius: 6px; font-size: 11px; cursor: pointer; white-space: nowrap; transition: 0.2s; }
         .size-opt-btn:hover, .size-opt-btn.active { background: #8a2be2; border-color: #00ffd1; }
-        
-        /* Custom Size Inputs Style */
-        .custom-size-container { display: flex; align-items: center; gap: 5px; border-left: 2px solid #3d346d; padding-left: 10px; margin-left: 5px; }
-        .custom-size-input { width: 55px; background: #120f24; border: 1px solid #3d346d; color: white; padding: 5px; border-radius: 4px; font-size: 11px; text-align: center; outline: none; }
-        .custom-size-btn { background: #00ffd1; color: #0c0a14; border: none; padding: 6px 10px; border-radius: 4px; font-size: 11px; font-weight: bold; cursor: pointer; }
 
         /* Layers Panel Slider */
+        .layers-trigger { position: absolute; right: 15px; top: 15px; background: #8a2be2; border: none; color: white; padding: 8px 12px; border-radius: 20px; font-size: 12px; font-weight: bold; cursor: pointer; z-index: 99; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .layers-panel { position: absolute; right: -250px; top: 60px; width: 220px; background: #151226; border: 1px solid #3d346d; border-radius: 10px; padding: 10px; display: flex; flex-direction: column; gap: 8px; z-index: 98; transition: 0.3s; box-shadow: -5px 5px 15px rgba(0,0,0,0.5); }
         .layers-panel.active { right: 15px; }
         .layer-item { display: flex; justify-content: space-between; align-items: center; background: #1c1736; padding: 6px 10px; border-radius: 6px; font-size: 11px; }
@@ -61,11 +56,10 @@
         .layer-icon-btn.active { color: #ff7675; }
 
         /* Main Base Dock Buttons */
-        .base-toolbar { display: flex; gap: 12px; overflow-x: auto; padding: 5px 15px; scrollbar-width: none; border-top: 1px solid #1c1736; justify-content: space-around; }
+        .base-toolbar { display: flex; gap: 15px; overflow-x: auto; padding: 5px 15px; scrollbar-width: none; border-top: 1px solid #1c1736; }
         .base-toolbar::-webkit-scrollbar { display: none; }
-        .main-dock-btn { display: flex; flex-direction: column; align-items: center; background: none; border: none; color: #b2bec3; font-size: 11px; cursor: pointer; min-width: 60px; gap: 4px; }
+        .main-dock-btn { display: flex; flex-direction: column; align-items: center; background: none; border: none; color: #b2bec3; font-size: 11px; cursor: pointer; min-width: 65px; gap: 4px; }
         .main-dock-btn i { font-size: 16px; color: white; background: #1c1736; padding: 10px; border-radius: 12px; width: 40px; height: 40px; display: flex; justify-content: center; align-items: center; }
-        .main-dock-btn.active i { background: #8a2be2; color: #00ffd1; }
         
         .color-picker-wrapper { position: relative; }
         .hidden-color { position: absolute; top:0; left:0; width:100%; height:100%; opacity:0; cursor:pointer; }
@@ -77,6 +71,8 @@
     <header><i class="fa-solid fa-wand-magic-sparkles"></i> HG Studio Pro</header>
 
     <div class="main-container">
+        <button class="layers-trigger" onclick="toggleLayersPanel()"><i class="fa-solid fa-layer-group"></i> Layers</button>
+        
         <div class="layers-panel" id="layersPanel">
             <h4 style="font-size: 11px; color:#a29bfe; border-bottom:1px solid #3d346d; padding-bottom:4px;">Object Layers</h4>
             <div id="layers-list-container" style="display:flex; flex-direction:column; gap:5px;"></div>
@@ -91,19 +87,12 @@
         
         <div class="context-menu" id="smartMenu"></div>
 
+        <!-- Dynamic Size Selector Row -->
         <div class="size-panel-popup" id="sizeMenuRow">
-            <div class="size-opts-wrapper">
-                <button class="size-opt-btn active" id="btn-square" onclick="changeCanvasAspectRatio('1:1', this)">Square (1:1)</button>
-                <button class="size-opt-btn" onclick="changeCanvasAspectRatio('16:9', this)">YouTube (16:9)</button>
-                <button class="size-opt-btn" onclick="changeCanvasAspectRatio('9:16', this)">TikTok (9:16)</button>
-                <button class="size-opt-btn" onclick="changeCanvasAspectRatio('facebook', this)">Facebook</button>
-            </div>
-            <div class="custom-size-container">
-                <input type="number" class="custom-size-input" id="custom-w" placeholder="W" value="340">
-                <span style="font-size:11px; color:#a29bfe;">×</span>
-                <input type="number" class="custom-size-input" id="custom-h" placeholder="H" value="340">
-                <button class="custom-size-btn" onclick="applyCustomSize()">Apply</button>
-            </div>
+            <button class="size-opt-btn active" onclick="changeCanvasAspectRatio('1:1', this)">Square (1:1)</button>
+            <button class="size-opt-btn" onclick="changeCanvasAspectRatio('16:9', this)">YouTube Thumbnail (16:9)</button>
+            <button class="size-opt-btn" onclick="changeCanvasAspectRatio('9:16', this)">TikTok / Status (9:16)</button>
+            <button class="size-opt-btn" onclick="changeCanvasAspectRatio('facebook', this)">Facebook Post</button>
         </div>
 
         <div id="templates-section-area">
@@ -112,11 +101,10 @@
         </div>
 
         <div class="base-toolbar">
-            <button class="main-dock-btn" id="ratio-dock-btn" onclick="toggleSizeMenu()"><i class="fa-solid fa-expand"></i><span>Ratio</span></button>
+            <button class="main-dock-btn" onclick="toggleSizeMenu()"><i class="fa-solid fa-expand"></i><span>Size</span></button>
             <button class="main-dock-btn" onclick="addCustomText()"><i class="fa-solid fa-t"></i><span>Add Text</span></button>
             <label for="hidden-photo-loader" class="main-dock-btn"><i class="fa-solid fa-image"></i><span>Add Photo</span></label>
             <input type="file" id="hidden-photo-loader" accept="image/*">
-            <button class="main-dock-btn" id="layers-dock-btn" onclick="toggleLayersPanel()"><i class="fa-solid fa-layer-group"></i><span>Layers</span></button>
             <button class="main-dock-btn" onclick="downloadMasterImage()" style="color: #00ffd1;"><i class="fa-solid fa-circle-down" style="background:#00adb5; color:white;"></i><span>Save HD</span></button>
         </div>
     </div>
@@ -150,21 +138,14 @@
 
         // Size Toggle Function
         function toggleSizeMenu() {
-            // Close layers if open
-            document.getElementById('layersPanel').classList.remove('active');
-            document.getElementById('layers-dock-btn').classList.remove('active');
-
-            const btn = document.getElementById('ratio-dock-btn');
             if(sizeMenuRow.style.display === 'flex') {
                 sizeMenuRow.style.display = 'none';
                 templatesSection.style.display = 'block';
-                btn.classList.remove('active');
             } else {
                 canvas.discardActiveObject().renderAll();
                 smartMenu.style.display = 'none';
                 sizeMenuRow.style.display = 'flex';
                 templatesSection.style.display = 'none';
-                btn.classList.add('active');
             }
         }
 
@@ -180,42 +161,7 @@
             canvas.renderAll();
 
             document.querySelectorAll('.size-opt-btn').forEach(btn => btn.classList.remove('active'));
-            if(element) element.classList.add('active');
-
-            // Sync custom inputs
-            document.getElementById('custom-w').value = w;
-            document.getElementById('custom-h').value = h;
-        }
-
-        // Apply Custom Width & Height Inputted by Customer
-        function applyCustomSize() {
-            let w = parseInt(document.getElementById('custom-w').value) || 340;
-            let h = parseInt(document.getElementById('custom-h').value) || 340;
-            
-            // Limit sizes to prevent design breakage on mobile screens
-            if (w < 50) w = 50; if (h < 50) h = 50;
-            if (w > 600) w = 600; if (h > 600) h = 600;
-
-            canvas.setWidth(w);
-            canvas.setHeight(h);
-            canvas.renderAll();
-
-            // Remove active class from fixed ratio buttons since it's custom
-            document.querySelectorAll('.size-opt-btn').forEach(btn => btn.classList.remove('active'));
-        }
-
-        // Layers Panel Toggle Mechanism
-        function toggleLayersPanel() {
-            // Close ratio menu if open
-            sizeMenuRow.style.display = 'none';
-            templatesSection.style.display = 'block';
-            document.getElementById('ratio-dock-btn').classList.remove('active');
-
-            const panel = document.getElementById('layersPanel');
-            const btn = document.getElementById('layers-dock-btn');
-            panel.classList.toggle('active');
-            btn.classList.toggle('active');
-            refreshLayers();
+            element.classList.add('active');
         }
 
         // 🎯 آبجیکٹ سلیکٹ ہونے پر سمارٹ مینو بدلنے کا سسٹم
@@ -225,7 +171,6 @@
             smartMenu.style.display = 'none';
             sizeMenuRow.style.display = 'none';
             templatesSection.style.display = 'block';
-            document.getElementById('ratio-dock-btn').classList.remove('active');
         });
 
         canvas.on('object:added', refreshLayers);
@@ -237,7 +182,6 @@
 
             templatesSection.style.display = 'none';
             sizeMenuRow.style.display = 'none';
-            document.getElementById('ratio-dock-btn').classList.remove('active');
             smartMenu.style.display = 'flex';
 
             if (activeObj.type === 'text') {
@@ -332,6 +276,11 @@
                 reader.readAsDataURL(file);
             }
         });
+
+        function toggleLayersPanel() {
+            document.getElementById('layersPanel').classList.toggle('active');
+            refreshLayers();
+        }
 
         function refreshLayers() {
             const container = document.getElementById('layers-list-container');
