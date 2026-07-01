@@ -4,258 +4,245 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Huzaifa Graphics Studio</title>
-    <!-- Tailwind CSS for modern styling -->
-    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Fabric.js for Canvas Manipulation -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f3f4f6; }
-        .canvas-container { margin: 0 auto; box-shadow: 0 10px 25px rgba(0,0,0,0.1); background: #ffffff; border-radius: 8px; overflow: hidden; }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f2f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-col-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            box-sizing: border-box;
+        }
+        h1 {
+            color: #333;
+            margin-bottom: 20px;
+        }
+        .control-group {
+            margin-bottom: 15px;
+            text-align: right;
+        }
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #555;
+        }
+        select, input[type="file"], input[type="text"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        .canvas-wrapper {
+            margin: 20px 0;
+            display: flex;
+            justify-content: center;
+            background-color: #e9ecef;
+            padding: 10px;
+            border-radius: 5px;
+            overflow: auto;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            border: none;
+            padding: 12px 20px;
+            font-size: 18px;
+            border-radius: 5px;
+            cursor: pointer;
+            width: 100%;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        .btn-text {
+            background-color: #007bff;
+            margin-top: 5px;
+        }
+        .btn-text:hover {
+            background-color: #0069d9;
+        }
     </style>
+    <!-- Fabric.js Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.1/fabric.min.js"></script>
 </head>
-<body class="p-4 bg-gray-100 min-h-screen flex flex-col items-center">
+<body>
 
-    <!-- Header -->
-    <div class="w-full max-w-4xl bg-gradient-to-r db-blue from-blue-600 to-purple-600 text-white text-center py-4 rounded-t-xl shadow-md mb-4">
-        <h1 class="text-2xl font-bold tracking-wide">HUZAIFA GRAPHICS STUDIO</h1>
-        <p class="text-sm opacity-90">فری آن لائن ڈیزائننگ پلیٹ فارم</p>
+<div class="container">
+    <h1>Huzaifa Graphics Studio</h1>
+
+    <!-- 1. NEW SIZE OPTION -->
+    <div class="control-group">
+        <label>۱. ڈیزائن کا سائز منتخب کریں:</label>
+        <select id="sizeSelect" onchange="changeCanvasSize(this.value)">
+            <option value="1:1">Instagram / Square Post (1:1)</option>
+            <option value="16:9">YouTube Thumbnail (16:9)</option>
+            <option value="9:16">TikTok / WhatsApp Status (9:16)</option>
+            <option value="facebook">Facebook Post</option>
+        </select>
     </div>
 
-    <!-- MAIN CONTAINER -->
-    <div class="w-full max-w-4xl bg-white p-4 rounded-b-xl shadow-lg flex flex-col gap-4">
+    <!-- 2. SELECT FRAME -->
+    <div class="control-group">
+        <label>۲. فریم منتخب کریں:</label>
+        <select id="templateSelect" onchange="loadTemplate(this.value)">
+            <option value="">-- کوئی فریم چنیں --</option>
+        </select>
+    </div>
+
+    <!-- 3. UPLOAD PHOTO -->
+    <div class="control-group">
+        <label>۳. اپنی تصویر اپلوڈ کریں:</label>
+        <input type="file" id="userPhotoInput" accept="image/*">
+    </div>
+
+    <!-- CANVAS AREA -->
+    <div class="canvas-wrapper">
+        <canvas id="mainCanvas"></canvas>
+    </div>
+
+    <!-- 4. ADD TEXT -->
+    <div class="control-group">
+        <label>۴. نام لکھیں:</label>
+        <input type="text" id="textInput" placeholder="یہاں اپنا نام لکھیں...">
+        <button class="btn-text" onclick="addCustomText()">نام شامل کریں</button>
+    </div>
+
+    <!-- DOWNLOAD DESIGN -->
+    <button onclick="downloadDesign()">📥 تیار ڈیزائن ڈاؤن لوڈ کریں</button>
+</div>
+
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+<script>
+    // === FIREBASE CONFIGURATION ===
+    const firebaseConfig = {
+        databaseURL: "https://huzaifa-graphics-default-rtdb.firebaseio.com"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    // === CANVAS INITIALIZATION ===
+    const canvas = new fabric.Canvas('mainCanvas', {
+        width: 500,
+        height: 500,
+        preserveObjectStacking: true
+    });
+
+    // Function to Change Canvas Size
+    function changeCanvasSize(value) {
+        let w = 500, h = 500;
         
-        <!-- STEP 1: SELECT DESIGN SIZE -->
-        <div class="bg-gray-50 p-3 rounded-lg border border-gray-200">
-            <label class="block text-sm font-bold text-gray-700 mb-2 text-right">۱. ڈیزائن کا سائز منتخب کریں:</label>
-            <div class="grid grid-cols-2 sm:grid-cols-4 gap-2">
-                <button onclick="changeCanvasSize(1080, 1080, '1:1')" class="size-btn bg-purple-600 text-white py-2 px-3 rounded text-sm font-semibold hover:bg-purple-700 transition">Instagram (1:1)</button>
-                <button onclick="changeCanvasSize(1280, 720, '16:9')" class="size-btn bg-gray-200 text-gray-800 py-2 px-3 rounded text-sm font-semibold hover:bg-gray-300 transition">YouTube Thumbnail (16:9)</button>
-                <button onclick="changeCanvasSize(720, 1280, '9:16')" class="size-btn bg-gray-200 text-gray-800 py-2 px-3 rounded text-sm font-semibold hover:bg-gray-300 transition">TikTok / Status (9:16)</button>
-                <button onclick="changeCanvasSize(1200, 630, '1.91:1')" class="size-btn bg-gray-200 text-gray-800 py-2 px-3 rounded text-sm font-semibold hover:bg-gray-300 transition">Facebook Post</button>
-            </div>
-            <div class="text-center text-xs text-purple-600 font-bold mt-2" id="current-size-display">موجودہ سائز: Instagram (1:1)</div>
-        </div>
-
-        <!-- CANVAS AREA -->
-        <div class="flex justify-center items-center p-2 bg-gray-200 rounded-lg overflow-auto min-h-[350px]">
-            <canvas id="mainCanvas"></canvas>
-        </div>
-
-        <!-- STEP 2: CONTROLS & BUTTONS -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            
-            <!-- Left Side: Upload Buttons -->
-            <div class="flex flex-col gap-2 bg-blue-50 p-3 rounded-lg border border-blue-200">
-                <span class="text-xs font-bold text-blue-800 block text-right">۲. فریم اور اپنی تصویر لائیں:</span>
-                
-                <!-- Select Template from Database -->
-                <label class="block text-xs text-gray-600 mb-1 text-right">ایڈمن کے اپلوڈ کردہ فریمز:</label>
-                <select id="templateSelect" class="w-full bg-white border border-gray-300 rounded p-2 text-sm" onchange="loadTemplate(this.value)">
-                    <option value="">-- کوئی فریم چنیں --</option>
-                </select>
-
-                <!-- Customer Photo Upload -->
-                <label class="block text-xs text-gray-600 mt-2 mb-1 text-right">اپنی تصویر شامل کریں:</label>
-                <input type="file" id="userPhotoInput" accept="image/*" class="w-full text-sm bg-white p-1 rounded border">
-            </div>
-
-            <!-- Right Side: Image Adjustment Tools -->
-            <div class="flex flex-col gap-2 bg-purple-50 p-3 rounded-lg border border-purple-200 justify-between">
-                <span class="text-xs font-bold text-purple-800 block text-right">۳. تصویر کی سیٹنگ (صرف کلک کریں):</span>
-                
-                <div class="grid grid-cols-3 gap-2">
-                    <button onclick="adjustImage('scale', 1.1)" class="bg-white border border-purple-400 text-purple-700 py-2 px-1 rounded text-xs font-bold hover:bg-purple-100">Size +</button>
-                    <button onclick="adjustImage('scale', 0.9)" class="bg-white border border-purple-400 text-purple-700 py-2 px-1 rounded text-xs font-bold hover:bg-purple-100">Size -</button>
-                    <button onclick="adjustImage('rotate', 15)" class="bg-white border border-purple-400 text-purple-700 py-2 px-1 rounded text-xs font-bold hover:bg-purple-100">Rotate ↻</button>
-                </div>
-                
-                <div class="grid grid-cols-2 gap-2 mt-2">
-                    <button onclick="adjustImage('layer', 'forward')" class="bg-gray-600 text-white py-1 px-1 rounded text-xs font-semibold hover:bg-gray-700">تصویر اوپر لائیں</button>
-                    <button onclick="adjustImage('layer', 'backward')" class="bg-gray-600 text-white py-1 px-1 rounded text-xs font-semibold hover:bg-gray-700">تصویر پیچھے بھیجیں</button>
-                </div>
-            </div>
-
-        </div>
-
-        <!-- STEP 3: TEXT ADDITION -->
-        <div class="bg-yellow-50 p-3 rounded-lg border border-yellow-200 flex flex-col gap-2">
-            <span class="text-xs font-bold text-yellow-800 block text-right">۴. نام یا کوئی بھی تحریر لکھیں:</span>
-            <div class="flex gap-2">
-                <button onclick="addCustomText()" class="bg-yellow-500 text-white font-bold px-4 py-2 rounded text-sm hover:bg-yellow-600 transition">نام شامل کریں</button>
-                <input type="text" id="textInput" placeholder="یہاں اپنا نام لکھیں..." class="flex-1 bg-white border border-gray-300 rounded p-2 text-right text-sm">
-            </div>
-        </div>
-
-        <!-- DOWNLOAD BUTTON -->
-        <button onclick="downloadDesign()" class="w-full bg-gradient-to-r from-green-500 to-emerald-600 text-white font-bold text-lg py-3 rounded-lg shadow hover:from-green-600 hover:to-emerald-700 transition duration-200 mt-2">
-            📥 تیار ڈیزائن ڈاؤن لوڈ کریں (FREE HD)
-        </button>
-
-    </div>
-
-    <!-- Firebase SDK & Custom Logic -->
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
-
-    <script>
-        // === 1. FIREBASE CONFIGURATION ===
-        // آپ کا فائر بیس کوڈ یہاں خود بخود نیچے کام کرے گا
-        const firebaseConfig = {
-            databaseURL: "https://huzaifa-graphics-default-rtdb.firebaseio.com"
-        };
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.database();
-
-        // === 2. CANVAS INITIALIZATION ===
-        const canvas = new fabric.Canvas('mainCanvas', {
-            width: 500,
-            height: 500,
-            preserveObjectStacking: true
-        });
-
-        let currentScaleMode = '1:1';
-        let baseWidth = 500;
-        let baseHeight = 500;
-
-        // Function to Change Canvas Aspect Ratio
-        function changeCanvasSize(w, h, label) {
-            // Adjust visual size inside container while maintaining ratio
-            let maxWidth = Math.min(window.innerWidth - 60, 500);
-            let ratio = w / h;
-            
-            if (w >= h) {
-                baseWidth = maxWidth;
-                baseHeight = maxWidth / ratio;
-            } else {
-                baseHeight = maxWidth;
-                baseWidth = maxWidth * ratio;
-            }
-
-            canvas.setWidth(baseWidth);
-            canvas.setHeight(baseHeight);
-            canvas.renderAll();
-
-            // Update UI buttons styling
-            document.querySelectorAll('.size-btn').forEach(btn => {
-                if(btn.innerText.includes(label)) {
-                    btn.classList.remove('bg-gray-200', 'text-gray-800');
-                    btn.classList.add('bg-purple-600', 'text-white');
-                } else {
-                    btn.classList.remove('bg-purple-600', 'text-white');
-                    btn.classList.add('bg-gray-200', 'text-gray-800');
-                }
-            });
-            document.getElementById('current-size-display').innerText = `موجودہ سائز: ${label}`;
+        if (value === "16:9") {
+            w = 533; h = 300; // YouTube Thumbnail Size Fit
+        } else if (value === "9:16") {
+            w = 300; h = 533; // Portrait Status Size Fit
+        } else if (value === "facebook") {
+            w = 533; h = 280; // Facebook Post Size Fit
+        } else {
+            w = 500; h = 500; // Default Square 1:1
         }
+        
+        canvas.setWidth(w);
+        canvas.setHeight(h);
+        canvas.renderAll();
+    }
 
-        // Auto Load Templates from Firebase Database
-        db.ref('templates').on('value', (snapshot) => {
-            const select = document.getElementById('templateSelect');
-            select.innerHTML = '<option value="">-- کوئی فریم چنیں --</option>';
-            snapshot.forEach((child) => {
-                const data = child.val();
-                const opt = document.createElement('option');
-                opt.value = data.url;
-                opt.innerText = data.name || "خوبصورت فریم";
-                select.appendChild(opt);
-            });
+    // Load Dynamic Templates from Firebase
+    db.ref('templates').on('value', (snapshot) => {
+        const select = document.getElementById('templateSelect');
+        select.innerHTML = '<option value="">-- کوئی فریم چنیں --</option>';
+        snapshot.forEach((child) => {
+            const data = child.val();
+            const opt = document.createElement('option');
+            opt.value = data.url;
+            opt.innerText = data.name || "خوبصورت فریم";
+            select.appendChild(opt);
         });
+    });
 
-        // Load Chosen Template onto Canvas
-        function loadTemplate(url) {
-            if(!url) return;
-            fabric.Image.fromURL(url, function(img) {
-                // Scale template to fit the current canvas dimensions perfectly
-                img.set({
-                    scaleX: canvas.width / img.width,
-                    scaleY: canvas.height / img.height,
-                    selectable: true,
-                    hasControls: true
-                });
-                canvas.add(img);
-                canvas.sendToBack(img);
-                canvas.renderAll();
-            }, { crossOrigin: 'anonymous' });
-        }
-
-        // Handle User Photo Upload
-        document.getElementById('userPhotoInput').addEventListener('change', function(e) {
-            const file = e.target.files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = function(f) {
-                fabric.Image.fromURL(f.target.result, function(img) {
-                    img.scaleToWidth(canvas.width * 0.5);
-                    img.set({
-                        left: 50,
-                        top: 50,
-                        selectable: true,
-                        hasControls: true
-                    });
-                    canvas.add(img);
-                    canvas.setActiveObject(img);
-                    canvas.renderAll();
-                });
-            };
-            reader.readAsDataURL(file);
-        });
-
-        // Add Custom Text
-        function addCustomText() {
-            const textVal = document.getElementById('textInput').value || "Huzaifa Studio";
-            const text = new fabric.IText(textVal, {
-                left: canvas.width / 3,
-                top: canvas.height / 2,
-                fontFamily: 'Arial',
-                fill: '#000000',
-                fontSize: 30,
-                textAlign: 'right',
+    // Load Chosen Template onto Canvas
+    function loadTemplate(url) {
+        if(!url) return;
+        fabric.Image.fromURL(url, function(img) {
+            img.set({
+                scaleX: canvas.width / img.width,
+                scaleY: canvas.height / img.height,
                 selectable: true
             });
-            canvas.add(text);
-            canvas.setActiveObject(text);
+            canvas.add(img);
+            canvas.sendToBack(img);
             canvas.renderAll();
-        }
+        }, { crossOrigin: 'anonymous' });
+    }
 
-        // Button Adjustments for Size/Rotation/Layer
-        function adjustImage(action, value) {
-            const activeObj = canvas.getActiveObject();
-            if(!activeObj) {
-                alert("براہ کرم پہلے تصویر یا نام پر کلک کر کے اسے سلیکٹ کریں!");
-                return;
-            }
-            if(action === 'scale') {
-                activeObj.scaleX *= value;
-                activeObj.scaleY *= value;
-            } else if (action === 'rotate') {
-                activeObj.rotate((activeObj.angle + value) % 360);
-            } else if (action === 'layer') {
-                if(value === 'forward') canvas.bringForward(activeObj);
-                if(value === 'backward') canvas.sendBackwards(activeObj);
-            }
-            canvas.renderAll();
-        }
-
-        // Download Final HQ Output
-        function downloadDesign() {
-            // Deselect everything before downloading to avoid corner dots in image
-            canvas.discardActiveObject();
-            canvas.requestRenderAll();
-            
-            setTimeout(() => {
-                const dataURL = canvas.toDataURL({
-                    format: 'png',
-                    quality: 1.0
+    // Handle User Photo Upload
+    document.getElementById('userPhotoInput').addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if(!file) return;
+        const reader = new FileReader();
+        reader.onload = function(f) {
+            fabric.Image.fromURL(f.target.result, function(img) {
+                img.scaleToWidth(canvas.width * 0.5);
+                img.set({
+                    left: 50,
+                    top: 50,
+                    selectable: true
                 });
-                const link = document.createElement('a');
-                link.download = 'Huzaifa-Graphics-Design.png';
-                link.href = dataURL;
-                link.click();
-            }, 100);
-        }
+                canvas.add(img);
+                canvas.setActiveObject(img);
+                canvas.renderAll();
+            });
+        };
+        reader.readAsDataURL(file);
+    });
 
-        // Set Default Size On Load
-        changeCanvasSize(1080, 1080, '1:1');
-    </script>
+    // Add Custom Text
+    function addCustomText() {
+        const textVal = document.getElementById('textInput').value || "Huzaifa Studio";
+        const text = new fabric.IText(textVal, {
+            left: 50,
+            top: canvas.height - 80,
+            fontFamily: 'Arial',
+            fill: '#000000',
+            fontSize: 28,
+            selectable: true
+        });
+        canvas.add(text);
+        canvas.setActiveObject(text);
+        canvas.renderAll();
+    }
+
+    // Download Design
+    function downloadDesign() {
+        canvas.discardActiveObject();
+        canvas.requestRenderAll();
+        setTimeout(() => {
+            const dataURL = canvas.toDataURL({ format: 'png', quality: 1.0 });
+            const link = document.createElement('a');
+            link.download = 'Huzaifa-Graphics-Design.png';
+            link.href = dataURL;
+            link.click();
+        }, 100);
+    }
+</script>
+
 </body>
 </html>
