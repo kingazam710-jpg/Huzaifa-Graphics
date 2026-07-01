@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Huzaifa Graphics | Free Admin Panel</title>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Montserrat', sans-serif; }
+        body { background-color: #0c0a14; color: white; padding: 20px; }
+        .admin-box { max-width: 500px; margin: 30px auto; background-color: #151226; padding: 25px; border-radius: 12px; border: 1px solid #3d346d; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        h2 { text-align: center; color: #00ffd1; margin-bottom: 20px; font-size: 22px; }
+        .form-group { margin-bottom: 20px; text-align: center; }
+        label { display: block; font-size: 12px; color: #a29bfe; margin-bottom: 8px; text-transform: uppercase; text-align: left; }
+        
+        .upload-label-btn { display: flex; flex-direction: column; align-items: center; justify-content: center; background-color: #1c1736; border: 2px dashed #4a00e0; padding: 30px 10px; border-radius: 8px; cursor: pointer; transition: 0.3s; }
+        .upload-label-btn:hover { border-color: #00ffd1; background-color: #221d45; }
+        .upload-label-btn i { font-size: 32px; color: #00ffd1; margin-bottom: 10px; }
+        .upload-label-btn span { font-size: 13px; color: #b2bec3; }
+        #gallery-file-input { display: none; }
+        
+        #img-preview { max-width: 150px; max-height: 150px; margin-top: 15px; border-radius: 8px; display: none; border: 2px solid #3d346d; }
+        
+        .btn-upload { width: 100%; background: linear-gradient(135deg, #8a2be2, #4a00e0); color: white; border: none; padding: 14px; border-radius: 8px; font-size: 16px; font-weight: bold; cursor: pointer; transition: 0.3s; }
+        .btn-upload:hover { background: #00ffd1; color: #0c0a14; }
+        .btn-upload:disabled { background: #443f66; color: #aaa; cursor: not-allowed; }
+        
+        .manage-section { max-width: 500px; margin: 20px auto; }
+        .template-list-item { display: flex; justify-content: space-between; align-items: center; background-color: #1c1736; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #2d2654; }
+        .template-list-item img { width: 50px; height: 50px; border-radius: 5px; object-fit: cover; }
+        .btn-delete { background-color: #ff7675; color: white; border: none; padding: 6px 12px; border-radius: 5px; cursor: pointer; font-size: 12px; font-weight: 600; }
+        .btn-delete:hover { background-color: #ff4757; }
+        #status-text { font-size: 13px; color: #00ffd1; margin-top: 10px; display: none; }
+    </style>
+</head>
+<body>
+
+    <div class="admin-box">
+        <h2><i class="fa-solid fa-user-shield"></i> HG Free Admin</h2>
+        
+        <div class="form-group">
+            <label>Select Template From Gallery</label>
+            <label for="gallery-file-input" class="upload-label-btn">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+                <span id="file-status">Click to open Gallery</span>
+            </label>
+            <input type="file" id="gallery-file-input" accept="image/*" onchange="previewImage(event)">
+            <img id="img-preview" src="">
+            <p id="status-text">Uploading, please wait...</p>
+        </div>
+        
+        <button class="btn-upload" id="upload-submit-btn" onclick="uploadTemplateFree()">Upload To Website (FREE)</button>
+    </div>
+
+    <div class="manage-section">
+        <h3 style="font-size: 14px; color: #a29bfe; margin-bottom: 10px; text-transform: uppercase;">Live Templates</h3>
+        <div id="admin-templates-list"></div>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+
+    <script>
+        const firebaseConfig = {
+            databaseURL: "https://huzaifa-graphics-default-rtdb.firebaseio.com/"
+        };
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+        
+        let base64ImageString = "";
+
+        function previewImage(event) {
+            const file = event.target.files[0];
+            if (file) {
+                document.getElementById('file-status').innerText = file.name;
+                
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('img-preview');
+                    preview.src = e.target.result;
+                    preview.style.display = 'inline-block';
+                    
+                    // تصویر کو فری ٹیکسٹ کوڈ میں بدلنا
+                    base64ImageString = e.target.result;
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        function uploadTemplateFree() {
+            if (!base64ImageString) {
+                alert("Please select an image first!");
+                return;
+            }
+
+            const uploadBtn = document.getElementById('upload-submit-btn');
+            const statusTxt = document.getElementById('status-text');
+
+            uploadBtn.disabled = true;
+            statusTxt.style.display = 'block';
+
+            // ڈائریکٹ ڈیٹا بیس کے اندر سیو کرنا (بغیر کسی کارڈ یا پیسوں کے)
+            const newTemplateRef = database.ref('templates').push();
+            newTemplateRef.set({
+                imageUrl: base64ImageString
+            }).then(() => {
+                alert("Template Uploaded 100% Free!");
+                resetForm();
+            }).catch((err) => {
+                alert("Upload error: " + err.message);
+                uploadBtn.disabled = false;
+                statusTxt.style.display = 'none';
+            });
+        }
+
+        function resetForm() {
+            base64ImageString = "";
+            document.getElementById('file-status').innerText = "Click to open Gallery";
+            document.getElementById('img-preview').style.display = 'none';
+            document.getElementById('status-text').style.display = 'none';
+            document.getElementById('upload-submit-btn').disabled = false;
+            document.getElementById('gallery-file-input').value = "";
+        }
+
+        const adminList = document.getElementById('admin-templates-list');
+        database.ref('templates').on('value', (snapshot) => {
+            adminList.innerHTML = "";
+            if(snapshot.exists()) {
+                snapshot.forEach((childSnapshot) => {
+                    const key = childSnapshot.key;
+                    const data = childSnapshot.val();
+                    
+                    const item = document.createElement('div');
+                    item.className = 'template-list-item';
+                    item.innerHTML = `
+                        <img src="${data.imageUrl}">
+                        <button class="btn-delete" onclick="deleteTemplate('${key}')"><i class="fa-solid fa-trash"></i> Delete</button>
+                    `;
+                    adminList.appendChild(item);
+                });
+            } else {
+                adminList.innerHTML = "<p style='color:#555; font-size:12px;'>No active templates on server.</p>";
+            }
+        });
+
+        function deleteTemplate(key) {
+            if(confirm("Delete this template?")) {
+                database.ref('templates/' + key).remove().then(() => {
+                    alert("Template removed.");
+                });
+            }
+        }
+    </script>
+</body>
+</html>
